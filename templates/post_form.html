@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Post • Secure Messenger Automation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);}
+    .card{background:#fff;border-radius:1rem;}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
+  </style>
+</head>
+<body class="min-h-screen gradient-bg">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <header class="mb-6 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-white/90 hover:text-white">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Home
+        </a>
+        <h1 class="text-2xl font-semibold">Post</h1>
+      </div>
+      <div class="text-sm text-white/80">
+        <i class="fa-regular fa-circle-check mr-1"></i>Backend: /post (Flask)
+      </div>
+    </header>
+
+    <div class="card shadow-2xl p-6">
+      <form id="postForm" method="POST" action="/post" enctype="multipart/form-data" class="grid gap-6">
+
+        <!-- Count + Builder -->
+        <div class="grid md:grid-cols-3 gap-4 items-end">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold mb-2">
+              <i class="fa-solid fa-list-ol mr-2 text-blue-600"></i> How many posts?
+            </label>
+            <input id="count" name="count" type="number" min="1" value="1"
+                   class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <button type="button" id="buildBtn"
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow">
+            <i class="fa-solid fa-hammer mr-2"></i>Build Fields
+          </button>
+        </div>
+
+        <div id="rows" class="grid gap-6"></div>
+
+        <div class="flex items-center gap-3">
+          <button type="submit"
+                  class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg shadow">
+            <i class="fa-solid fa-paper-plane mr-2"></i>Start Post Tasks
+          </button>
+          <a href="/stop" class="text-blue-700 hover:underline"><i class="fa-solid fa-stop mr-1"></i>Stop a task</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="modal">
+      <div class="bg-white rounded-2xl max-w-3xl w-full p-6 relative shadow-2xl">
+        <button id="closeModal" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-terminal text-blue-600"></i> Task Result
+        </h3>
+        <div id="resultHtml" class="prose max-w-none text-sm"></div>
+
+        <div id="taskIdsWrap" class="mt-5 hidden">
+          <label class="block text-sm font-semibold mb-2">
+            <i class="fa-regular fa-id-card mr-2 text-blue-600"></i>Task IDs
+          </label>
+          <div id="taskIdsList" class="space-y-2"></div>
+          <p class="text-xs text-gray-500 mt-2">Use these IDs in <a href="/stop" class="text-blue-700 underline">/stop</a> to stop individual tasks.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const rows = document.getElementById('rows');
+    const buildBtn = document.getElementById('buildBtn');
+
+    function makeRow(i){
+      const div = document.createElement('div');
+      div.className = "grid md:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-lg border";
+      div.innerHTML = `
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold mb-2"><i class="fa-solid fa-link mr-1 text-purple-600"></i>Post ID #${i}</label>
+          <input name="id_${i}" type="text" required
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="e.g. 1234567890123">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2"><i class="fa-solid fa-user-ninja mr-1 text-emerald-600"></i>Hater Name #${i}</label>
+          <input name="hatername_${i}" type="text" required
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="Prefix">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2"><i class="fa-regular fa-clock mr-1 text-yellow-600"></i>Delay #${i} (s)</label>
+          <input name="delay_${i}" type="number" min="1" required
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500" placeholder="e.g. 5">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2"><i class="fa-solid fa-key mr-1 text-blue-600"></i>Tokens #${i} (.txt)</label>
+          <input name="token_${i}" type="file" accept=".txt" required
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="md:col-span-5">
+          <label class="block text-sm font-semibold mb-2"><i class="fa-solid fa-file-lines mr-1 text-pink-600"></i>Comments #${i} (.txt)</label>
+          <input name="comm_${i}" type="file" accept=".txt" required
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500">
+          <p class="text-xs text-gray-500 mt-1">One line per comment</p>
+        </div>
+      `;
+      return div;
+    }
+
+    function rebuild(){
+      rows.innerHTML = '';
+      const n = Math.max(1, parseInt(document.getElementById('count').value || '1', 10));
+      for(let i=1;i<=n;i++) rows.appendChild(makeRow(i));
+    }
+
+    buildBtn.addEventListener('click', rebuild);
+    // Build once on load
+    rebuild();
+
+    // Submit via fetch, show modal, parse task IDs from backend HTML
+    const form = document.getElementById('postForm');
+    const modal = document.getElementById('resultModal');
+    const resultHtml = document.getElementById('resultHtml');
+    const taskIdsWrap = document.getElementById('taskIdsWrap');
+    const taskIdsList = document.getElementById('taskIdsList');
+
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      try{
+        const res = await fetch('/post', { method:'POST', body:fd });
+        const html = await res.text();
+        resultHtml.innerHTML = html;
+        modal.style.display = 'flex';
+
+        // Extract all task ids in the backend HTML (your /post returns many)
+        const ids = [...html.matchAll(/Stop Key:\s*<b>([A-Za-z0-9]+)<\/b>/g)].map(m=>m[1]);
+        taskIdsList.innerHTML = '';
+        if(ids.length){
+          taskIdsWrap.classList.remove('hidden');
+          ids.forEach(id=>{
+            const row = document.createElement('div');
+            row.className = "flex items-center gap-2";
+            row.innerHTML = `
+              <code class="px-3 py-2 bg-gray-100 rounded grow">${id}</code>
+              <button class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded copyBtn" data-id="${id}">
+                <i class="fa-regular fa-copy mr-1"></i>Copy
+              </button>`;
+            taskIdsList.appendChild(row);
+          });
+
+          taskIdsList.querySelectorAll('.copyBtn').forEach(btn=>{
+            btn.addEventListener('click', async ()=>{
+              await navigator.clipboard.writeText(btn.dataset.id);
+              const old = btn.innerHTML;
+              btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Copied';
+              setTimeout(()=>btn.innerHTML=old,1200);
+            });
+          });
+        }else{
+          taskIdsWrap.classList.add('hidden');
+        }
+      }catch(err){
+        resultHtml.innerHTML = `<div class="text-red-600 font-semibold">Request failed. ${err}</div>`;
+        modal.style.display = 'flex';
+      }
+    });
+
+    document.getElementById('closeModal').addEventListener('click', ()=> modal.style.display='none');
+    window.addEventListener('keydown', (e)=>{if(e.key==='Escape') modal.style.display='none'});
+  </script>
+</body>
+</html>

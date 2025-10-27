@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Base */
+        body {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('https://raw.githubusercontent.com/Legend-Xaryab/Ap1/refs/heads/main/templates/Backx.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            transition: background 0.4s, color 0.4s;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 2rem 1rem;
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        /* Dark Mode */
+        body.dark {
+            background: url('https://raw.githubusercontent.com/Legend-Xaryab/Ap1/refs/heads/main/templates/Backx.jpg') no-repeat center center fixed;
+            background-size: cover;
+            filter: brightness(0.6);
+            color: #ddd;
+        }
+        body.dark main {
+            background: #1f2a38;
+            color: #eee;
+        }
+        body.dark .notice {
+            background: #263238;
+            border-left-color: #00bfa5;
+            color: #eee;
+        }
+        body.dark a.button {
+            background: linear-gradient(135deg, #00bfa5, #1de9b6);
+        }
+        body.dark footer {
+            color: #aaa;
+        }
+
+        /* Dark Mode Toggle */
+        .dark-toggle {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        body.dark .dark-toggle {
+            background: #333;
+            color: #fff;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            text-align: center;
+            animation: fadeUp 1.2s ease;
+        }
+
+        .notice {
+            padding: 1rem;
+            background: #e8f5e9;
+            border-left: 6px solid #43a047;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        a.button {
+            display: block;
+            padding: 1rem;
+            background: linear-gradient(135deg, #42e695, #3bb2b8);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            word-break: break-word;
+        }
+        a.button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        }
+
+        /* Contact Card */
+        .contact-card {
+            margin-top: 2.5rem;
+            padding: 1.5rem;
+            background: #f5f5f5;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        body.dark .contact-card {
+            background: #2c3e50;
+        }
+        .contact-card h2 {
+            margin-bottom: 1rem;
+        }
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .contact-links a {
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #4CAF50;
+            transition: 0.3s;
+        }
+        .contact-links a:hover {
+            color: #2e7d32;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            color: #eee;
+            font-size: 0.9rem;
+            margin-top: 3rem;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            header {
+                font-size: 1.2rem;
+                padding: 1.5rem 1rem;
+            }
+
+            .dark-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            main {
+                margin: 2rem 1rem;
+                padding: 1.5rem;
+            }
+
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            a.button {
+                font-size: 0.95rem;
+                padding: 0.9rem;
+            }
+
+            .contact-card {
+                margin-top: 2rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚀 Welcome to Your Dashboard</h1>
+        <button class="dark-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+    </header>
+    <main>
+        {% if session.get('admin_logged_in') %}
+            <div class="notice">
+                ✅ Logged in as <b>Admin</b>
+            </div>
+            <div class="button-grid">
+                <a class="button" href="{{ url_for('admin_tasks') }}">📋 View All Tasks</a>
+                <a class="button" href="{{ url_for('admin_logout') }}">🔒 Logout Admin</a>
+            </div>
+        {% else %}
+            <div class="notice">
+                🌟 Welcome Boss You Are Now Our Paid <b>User</b>.
+            </div>
+            <div class="button-grid">
+                <a class="button" href="{{ url_for('convo') }}">💬 Start Convo Tasks</a>
+                <a class="button" href="{{ url_for('post') }}">📝 Start Post Tasks</a>
+                <a class="button" href="{{ url_for('my_tasks') }}">📂 View My Tasks</a>
+                <a class="button" href="{{ url_for('admin_login') }}">🔑 Admin Login</a>
+            </div>
+        {% endif %}
+
+        <!-- Admin Contact Section -->
+        <div class="contact-card">
+            <h2>📞 Contact Admin</h2>
+            <p>If you need help, join our group or connect with us:</p>
+            <div class="contact-links">
+                <a href="https://chat.whatsapp.com/" target="_blank">WhatsApp Group</a>
+                <a href="https://www.facebook.com/share/" target="_blank">Facebook Page</a>
+            </div>
+        </div>
+    </main>
+    <footer>
+        © {{ 2025 }} Task Manager | MADE BY NAME
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark");
+            document.querySelector(".dark-toggle").textContent = 
+                document.body.classList.contains("dark") ? "☀️ Light Mode" : "🌙 Dark Mode";
+        }
+    </script>
+</body>
+</html>

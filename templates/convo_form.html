@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Convo • Secure Messenger Automation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);}
+    .card{background:#fff;border-radius:1rem;}
+    .shake{animation:shake .4s}
+    @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
+  </style>
+</head>
+<body class="min-h-screen gradient-bg">
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <header class="mb-6 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-white/90 hover:text-white">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Home
+        </a>
+        <h1 class="text-2xl font-semibold">Convo</h1>
+      </div>
+      <div class="text-sm text-white/80">
+        <i class="fa-regular fa-circle-check mr-1"></i>Backend: /convo (Flask)
+      </div>
+    </header>
+
+    <div class="card shadow-2xl p-6">
+      <form id="convoForm" method="POST" action="/convo" enctype="multipart/form-data" class="grid gap-6">
+
+        <!-- Token option -->
+        <div>
+          <label class="block text-sm font-semibold mb-2"><i class="fa-solid fa-key mr-2 text-blue-600"></i>Token Source</label>
+          <div class="flex flex-wrap gap-4">
+            <label class="inline-flex items-center gap-2">
+              <input type="radio" name="tokenOption" value="single" class="accent-blue-600" checked>
+              <span>Single token</span>
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input type="radio" name="tokenOption" value="multiple" class="accent-blue-600">
+              <span>Upload tokens file (.txt)</span>
+            </label>
+          </div>
+
+          <div id="singleTokenWrap" class="mt-3">
+            <input name="singleToken" id="singleToken" type="text" placeholder="EAAB..."
+                   class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500"/>
+          </div>
+
+          <div id="tokenFileWrap" class="mt-3 hidden">
+            <input name="tokenFile" id="tokenFile" type="file" accept=".txt"
+                   class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500"/>
+            <p class="text-xs text-gray-500 mt-1">One token per line</p>
+          </div>
+        </div>
+
+        <!-- Thread & message prefix -->
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              <i class="fa-solid fa-users mr-2 text-purple-600"></i>Thread ID
+            </label>
+            <input name="threadId" id="threadId" type="text" placeholder="e.g. 123456789..."
+                   class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              <i class="fa-solid fa-tag mr-2 text-emerald-600"></i>Message Prefix (kidx)
+            </label>
+            <input name="kidx" id="kidx" type="text" placeholder="Optional prefix"
+                   class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <!-- Interval -->
+        <div>
+          <label class="block text-sm font-semibold mb-2">
+            <i class="fa-regular fa-clock mr-2 text-yellow-600"></i>Interval (seconds)
+          </label>
+          <input name="time" id="time" type="number" min="1" placeholder="e.g. 5"
+                 class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500" required>
+          <p id="intervalNotice" class="text-xs text-red-600 mt-1">
+            ⚠️ Please set interval more than 8 seconds, otherwise your loader will not run.
+          </p>
+        </div>
+
+        <!-- Messages file -->
+        <div>
+          <label class="block text-sm font-semibold mb-2">
+            <i class="fa-solid fa-file-lines mr-2 text-pink-600"></i>Messages File (.txt)
+          </label>
+          <input name="txtFile" id="txtFile" type="file" accept=".txt"
+                 class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500" required>
+          <p class="text-xs text-gray-500 mt-1">One line per message</p>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center gap-3">
+          <button type="submit"
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow">
+            <i class="fa-solid fa-paper-plane mr-2"></i>Start Convo Task
+          </button>
+          <a href="/stop" class="text-blue-700 hover:underline"><i class="fa-solid fa-stop mr-1"></i>Stop a task</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="modal">
+      <div class="bg-white rounded-2xl max-w-2xl w-full p-6 relative shadow-2xl">
+        <button id="closeModal" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-terminal text-blue-600"></i> Task Result
+        </h3>
+
+        <div id="resultHtml" class="prose max-w-none text-sm"></div>
+
+        <div id="taskBox" class="mt-5 hidden">
+          <label class="block text-sm font-semibold mb-2"><i class="fa-regular fa-id-card mr-2 text-blue-600"></i>Task ID</label>
+          <div class="flex items-center gap-2">
+            <code id="taskIdOut" class="px-3 py-2 bg-gray-100 rounded w-full overflow-x-auto"></code>
+            <button id="copyTaskId"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded">
+              <i class="fa-regular fa-copy mr-1"></i>Copy
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">Use this ID in <a href="/stop" class="text-blue-700 underline">/stop</a> to end the task.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Token option toggle
+    const singleWrap = document.getElementById('singleTokenWrap');
+    const fileWrap   = document.getElementById('tokenFileWrap');
+    document.querySelectorAll('input[name="tokenOption"]').forEach(r => {
+      r.addEventListener('change', e => {
+        if(e.target.value === 'single'){
+          singleWrap.classList.remove('hidden'); fileWrap.classList.add('hidden');
+          document.getElementById('tokenFile').value = '';
+        }else{
+          fileWrap.classList.remove('hidden'); singleWrap.classList.add('hidden');
+          document.getElementById('singleToken').value = '';
+        }
+      });
+    });
+
+    const form = document.getElementById('convoForm');
+    const modal = document.getElementById('resultModal');
+    const resultHtml = document.getElementById('resultHtml');
+    const taskBox = document.getElementById('taskBox');
+    const taskIdOut = document.getElementById('taskIdOut');
+
+    // Interval validation
+    form.addEventListener('submit', (e) => {
+      const interval = parseInt(document.getElementById('time').value, 10);
+      if (interval < 9) {
+        e.preventDefault();
+        alert("⛔ Time interval is not correct. Please set it to 9 seconds or more.");
+        return;
+      }
+    }, true);
+
+    // Progressive enhancement: fetch, show modal with backend HTML, extract task id(s)
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      try{
+        const res = await fetch('/convo', { method:'POST', body:fd });
+        const html = await res.text();
+        resultHtml.innerHTML = html;
+        modal.style.display = 'flex';
+
+        // Try to extract a task id from the HTML your backend returns
+        const match = html.match(/Stop Key:\s*<b>([A-Za-z0-9]+)<\/b>/) || html.match(/value="([A-Za-z0-9]{20})"/);
+        if(match && match[1]){
+          taskIdOut.textContent = match[1];
+          taskBox.classList.remove('hidden');
+        } else {
+          taskBox.classList.add('hidden');
+        }
+      }catch(err){
+        resultHtml.innerHTML = `<div class="text-red-600 font-semibold">Request failed. ${err}</div>`;
+        modal.style.display = 'flex';
+      }
+    });
+
+    document.getElementById('closeModal').addEventListener('click', ()=> modal.style.display='none');
+    window.addEventListener('keydown', (e)=>{if(e.key==='Escape') modal.style.display='none'});
+
+    document.getElementById('copyTaskId').addEventListener('click', async ()=>{
+      const tid = taskIdOut.textContent.trim();
+      if(!tid) return;
+      await navigator.clipboard.writeText(tid);
+      const btn = document.getElementById('copyTaskId');
+      const old = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Copied';
+      setTimeout(()=>btn.innerHTML=old,1500);
+    });
+  </script>
+</body>
+</html>

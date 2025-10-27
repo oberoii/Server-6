@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin Panel - Secure Messenger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);}
+    .glass{background:rgba(255,255,255,.1);backdrop-filter:blur(8px);}
+    .floaty{animation:floaty 8s ease-in-out infinite;}
+    @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  </style>
+</head>
+<body class="min-h-screen gradient-bg text-white">
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <header class="text-center mb-12">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white text-purple-600 shadow-xl mb-4 floaty">
+        <i class="fa-solid fa-shield-halved text-3xl"></i>
+      </div>
+      <h1 class="text-4xl font-bold">Admin Panel</h1>
+      <p class="text-blue-100 mt-2">Manage approvals & monitor system tasks</p>
+      <div class="mt-4 space-x-4">
+        <a href="/" class="text-blue-200 hover:text-white">
+          <i class="fa-solid fa-home mr-1"></i> Home
+        </a>
+        <a href="/admin/logout" class="text-red-300 hover:text-red-100">
+          <i class="fa-solid fa-sign-out-alt mr-1"></i> Logout
+        </a>
+      </div>
+    </header>
+
+    <!-- Running Tasks Button -->
+    <div class="mb-10 text-center">
+      <a href="{{ url_for('admin_tasks') }}" 
+         class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg text-white text-lg transition">
+        <i class="fa-solid fa-tasks mr-2"></i> View Running Tasks
+      </a>
+    </div>
+
+    <!-- Pending Requests -->
+    <section class="glass rounded-2xl p-6 mb-10 shadow-xl">
+      <h2 class="text-2xl font-semibold mb-4"><i class="fa-solid fa-hourglass-half mr-2"></i> Pending Requests</h2>
+      {% if pending_requests %}
+        <ul class="space-y-3">
+          {% for user_id in pending_requests %}
+          <li class="flex justify-between items-center glass rounded-xl p-4 border border-white/10">
+            <span>{{ user_id }}</span>
+            <div class="space-x-2">
+              <a href="{{ url_for('approve_user', user_id=user_id) }}" 
+                 class="px-4 py-1 bg-green-600 hover:bg-green-700 rounded-lg text-sm">Approve</a>
+              <a href="{{ url_for('reject_user', user_id=user_id) }}" 
+                 class="px-4 py-1 bg-red-600 hover:bg-red-700 rounded-lg text-sm">Reject</a>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-blue-200">No pending requests.</p>
+      {% endif %}
+    </section>
+
+    <!-- Approved Users -->
+    <section class="glass rounded-2xl p-6 shadow-xl">
+      <h2 class="text-2xl font-semibold mb-4"><i class="fa-solid fa-users mr-2"></i> Approved Users</h2>
+      {% if approved_users %}
+        <ul class="space-y-3">
+          {% for user_id in approved_users %}
+          <li class="flex justify-between items-center glass rounded-xl p-4 border border-white/10">
+            <span>{{ user_id }}</span>
+            <a href="{{ url_for('remove_user', user_id=user_id) }}" 
+               class="px-4 py-1 bg-red-600 hover:bg-red-700 rounded-lg text-sm">Remove</a>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-blue-200">No approved users yet.</p>
+      {% endif %}
+    </section>
+  </div>
+</body>
+</html>

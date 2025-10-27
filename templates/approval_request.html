@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Approval Required - Secure Messenger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);}
+    .glass{background:rgba(255,255,255,.1);backdrop-filter:blur(8px);}
+    .floaty{animation:floaty 8s ease-in-out infinite;}
+    @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  </style>
+</head>
+<body class="min-h-screen gradient-bg text-white flex items-center justify-center">
+  <div class="max-w-md w-full mx-auto px-6 py-12 glass rounded-2xl shadow-xl">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white text-red-600 shadow-xl mb-4 floaty">
+        <i class="fa-solid fa-user-lock text-3xl"></i>
+      </div>
+      <h1 class="text-3xl font-bold">Access Restricted</h1>
+      <p class="text-blue-100 mt-2">Admin approval required to use this app</p>
+    </div>
+    
+    {% if already_requested %}
+    <div class="text-center space-y-4">
+      <div class="p-4 rounded-xl bg-yellow-500/20 border border-yellow-400/30">
+        <i class="fa-solid fa-clock text-yellow-400 mr-2"></i>
+        <span class="text-yellow-100">Request already sent. Please wait for admin approval.</span>
+      </div>
+    </div>
+    {% else %}
+    <form method="POST" class="space-y-6">
+      <div class="text-center space-y-4">
+        <p class="text-blue-100">You need admin approval to access this application. Click below to send your request.</p>
+        <button type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 transition font-semibold shadow-lg">
+          <i class="fa-solid fa-paper-plane mr-2"></i> Send Approval Request
+        </button>
+      </div>
+    </form>
+    {% endif %}
+    
+    <div class="mt-6 text-center">
+      <a href="/admin/login" class="text-blue-200 hover:text-white text-sm">
+        <i class="fa-solid fa-user-shield mr-1"></i> Admin Login
+      </a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>All Tasks - Secure Messenger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);}
+    .glass{background:rgba(255,255,255,.1);backdrop-filter:blur(8px);}
+    .floaty{animation:floaty 8s ease-in-out infinite;}
+    @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  </style>
+</head>
+<body class="min-h-screen gradient-bg text-white">
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <header class="text-center mb-12">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white text-purple-600 shadow-xl mb-4 floaty">
+        <i class="fa-solid fa-tasks text-3xl"></i>
+      </div>
+      <h1 class="text-4xl font-bold">All Running Tasks</h1>
+      <p class="text-blue-100 mt-2">Monitor & Manage tasks for all users</p>
+      <div class="mt-4 space-x-4">
+        <a href="/admin" class="text-blue-200 hover:text-white">
+          <i class="fa-solid fa-shield-halved mr-1"></i> Back to Admin Panel
+        </a>
+        <a href="/admin/logout" class="text-red-300 hover:text-red-100">
+          <i class="fa-solid fa-sign-out-alt mr-1"></i> Logout
+        </a>
+      </div>
+    </header>
+
+    <main>
+      {% if running_tasks %}
+        <div class="space-y-8">
+          {% for username, tasks in running_tasks.items() %}
+            <div class="glass rounded-2xl p-6 shadow-xl">
+              <h2 class="text-2xl font-semibold mb-4">
+                <i class="fa-solid fa-user mr-2"></i> {{ username }}
+              </h2>
+              {% if tasks %}
+                <div class="space-y-4">
+                  {% for task_id, task in tasks.items() %}
+                  <div class="glass rounded-xl p-4 border border-white/10 flex items-center justify-between">
+                    <div>
+                      <p class="font-semibold">Task ID: {{ task_id }}</p>
+                      <p class="text-sm text-blue-200">Type: {{ task.type }} | Status: {{ task.status }}</p>
+                    </div>
+                    <a href="/stop_task/{{ username }}/{{ task_id }}" 
+                       class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm transition">
+                      <i class="fa-solid fa-stop mr-1"></i> Stop Task
+                    </a>
+                  </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="text-blue-200">No tasks running for this user.</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-12 text-blue-200">
+          <i class="fa-solid fa-circle-check text-5xl mb-4"></i>
+          <p>No running tasks at the moment.</p>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</body>
+                </html>
